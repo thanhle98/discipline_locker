@@ -1,5 +1,6 @@
 import Foundation
 import AppKit
+import ServiceManagement
 
 @Observable
 class ScheduleStore {
@@ -18,6 +19,16 @@ class ScheduleStore {
         }
     }
 
+    var launchAtLogin: Bool {
+        didSet {
+            if launchAtLogin {
+                try? SMAppService.mainApp.register()
+            } else {
+                try? SMAppService.mainApp.unregister()
+            }
+        }
+    }
+
     init() {
         if let data = UserDefaults.standard.data(forKey: "daySchedules"),
            let decoded = try? JSONDecoder().decode([DaySchedule].self, from: data) {
@@ -27,6 +38,7 @@ class ScheduleStore {
         }
         self.isActive = UserDefaults.standard.bool(forKey: "isActive")
         self.hideFromDock = UserDefaults.standard.bool(forKey: "hideFromDock")
+        self.launchAtLogin = SMAppService.mainApp.status == .enabled
     }
 
     func applyDockPolicy() {

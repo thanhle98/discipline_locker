@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import UserNotifications
 
 @Observable
@@ -10,7 +11,7 @@ class AlertManager {
     func start(store: ScheduleStore) {
         stop()
         Task {
-            try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
+            try? await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge, .criticalAlert])
         }
         timerTask = Task {
             while !Task.isCancelled {
@@ -52,6 +53,7 @@ class AlertManager {
         content.title = title
         content.body = body
         content.sound = .defaultCritical
+        content.interruptionLevel = .critical
 
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
@@ -61,5 +63,18 @@ class AlertManager {
         Task {
             try? await UNUserNotificationCenter.current().add(request)
         }
+
+        showPersistentAlert(title: title, body: body)
+    }
+
+    private func showPersistentAlert(title: String, body: String) {
+        NSApp.activate()
+
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = body
+        alert.alertStyle = .critical
+        alert.addButton(withTitle: "I understand")
+        alert.runModal()
     }
 }

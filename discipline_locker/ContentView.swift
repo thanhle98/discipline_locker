@@ -1,5 +1,4 @@
 import SwiftUI
-import ServiceManagement
 
 struct ContentView: View {
     @Environment(ScheduleStore.self) var store
@@ -64,6 +63,8 @@ struct ContentView: View {
 
             Divider()
 
+            Toggle("Launch at Login", isOn: $store.launchAtLogin)
+                .font(.callout)
             Toggle("Hide from Dock", isOn: $store.hideFromDock)
                 .font(.callout)
         }
@@ -82,7 +83,6 @@ struct ContentView: View {
             do {
                 try ShutdownDaemonManager.install(schedules: store.schedules)
                 store.isActive = true
-                try? SMAppService.mainApp.register()
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true
@@ -97,7 +97,6 @@ struct ContentView: View {
             do {
                 try ShutdownDaemonManager.uninstall()
                 store.isActive = false
-                try? SMAppService.mainApp.unregister()
             } catch {
                 errorMessage = error.localizedDescription
                 showError = true
